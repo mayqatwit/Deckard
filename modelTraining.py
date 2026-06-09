@@ -13,7 +13,10 @@ def buildLayers(kernel: tuple) -> list:
         lambda: layers.Flatten(),
         lambda: layers.Dense(128, activation='relu'),
         lambda: layers.Dropout(0.5),
-        lambda: layers.Dense(1, activation='sigmoid')
+        lambda: layers.Dense(1, activation='sigmoid'),
+        lambda: tf.keras.applications.MobileNetV2(input_shape=(128, 128, 3), include_top=False, weights='imagenet'),
+        lambda: layers.GlobalAveragePooling2D(),
+        lambda: layers.Dense(256, activation='relu')
     ]
 
 def importData(path: str):
@@ -34,6 +37,9 @@ def chooseLayers(layers: list,args: list):
 
 def trainModel(layers: list, numEpochs: int, trainData, testData, modelName: str):
     """Trains and tests a model based on a given list of layers, number of epochs, and the training and testing data"""
+    for layer in layers:
+        if isinstance(layer, tf.keras.Model):
+            layer.trainable = False
     model = tf.keras.Sequential(layers)
     model.summary()
     model.compile(optimizer='adam',loss='binary_crossentropy',metrics=['accuracy'])
@@ -96,7 +102,10 @@ if __name__ == "__main__":
         4: Flatten() \n\
         5: Dense(128, activation='relu') \n\
         6: Dropout(0.5) \n\
-        7: Dense(1, activation='sigmoid')\n")
+        7: Dense(1, activation='sigmoid')\n\
+        8: MobileNetV2(input_shape=(128, 128, 3), include_top=False, weights=\'imagenet\')\n\
+        9: GlobalAveragePooling2D()\n\
+        10: Dense(256, activation='relu')")
         print("Example usage: modelTraining.py Dataset/my_real_vs_ai_dataset/my_real_vs_ai_dataset Models/finalModel.keras plot.png 2 3 1 0 0 0 2 0 3 0 4 5 6 7 \n\
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓\n\
 ┃ Layer (type)                         ┃ Output Shape                ┃         Param # ┃\n\
